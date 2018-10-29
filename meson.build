@@ -123,16 +123,31 @@ else
 endif
 
 version = get_option('sway-version')
+git_commit_hash = run_command(['cat', 'ARCHIVECOMMIT']).stdout().strip()
+if git_commit_hash == '' or git_commit_hash.contains('$')
+	git_commit_hash = 'N/A'
+endif
+
 if version != ''
-	version = '"@0@"'.format(version)
+	version = '"@0@ (commit @1@)"'.format(version, git_commit_hash)
 else
-	if not git.found()
-		error('git is required to make the version string')
+	git_is_valid = false
+	if git.found()
+		git_is_valid_run = run_command([git.path(), 'rev-parse', '--show-prefix'])
+		if git_is_valid_run.returncode() == 0 and git_is_valid_run.stdout().strip() == ''
+			git_is_valid = true
+		endif
 	endif
 
-	git_commit_hash = run_command([git.path(), 'describe', '--always', '--tags']).stdout().strip()
-	git_branch = run_command([git.path(), 'rev-parse', '--abbrev-ref', 'HEAD']).stdout().strip()
-	version = '"@0@ (" __DATE__ ", branch \'@1@\')"'.format(git_commit_hash, git_branch)
+	if git_is_valid
+		git_commit_hash = run_command([git.path(), 'describe', '--always', '--tags']).stdout().strip()
+		git_branch = run_command([git.path(), 'rev-parse', '--abbrev-ref', 'HEAD']).stdout().strip()
+		version = '"@0@ (" __DATE__ ", branch \'@1@\')"'.format(git_commit_hash, git_branch)
+	elif git_commit_hash != 'N/A'
+		version = '"UNKNOWN ("__DATE__", commit @0@)"'.format(git_commit_hash)
+	else
+		error('a git repository or archive export is required to make the version string')
+	endif
 endif
 add_project_arguments('-DSWAY_VERSION=@0@'.format(version), language: 'c')
 
