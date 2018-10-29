@@ -138,12 +138,12 @@ if version == '' or git_commit_hash == ''
 	git_commit_hash = run_command([git.path(), 'describe', '--always', '--tags']).stdout().strip()
 	git_branch = run_command([git.path(), 'rev-parse', '--abbrev-ref', 'HEAD']).stdout().strip()
 	if version == ''
-		version = '"@2@ ~ @0@ (" __DATE__ ", branch \'@1@\')"'.format(git_commit_hash, git_branch, version)
+		version = '"@2@ ~ @0@ (branch \'@1@\')"'.format(git_commit_hash, git_branch, version)
 	endif
-		version = '"@0@ (" __DATE__ ", branch \'@1@\')"'.format(git_commit_hash, git_branch)
+		version = '"@0@ (branch \'@1@\')"'.format(git_commit_hash, git_branch)
 	endif
 else
-	version = '"@0@ (" __DATE__ ", commit @1@)"'.format(version, git_commit_hash)
+	version = '"@0@ (commit @1@)"'.format(version, git_commit_hash)
 endif
 add_project_arguments('-DSWAY_VERSION=@0@'.format(version), language: 'c')
 
